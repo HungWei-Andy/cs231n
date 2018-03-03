@@ -1,7 +1,6 @@
 import numpy as np
 from past.builtins import xrange
 
-
 class KNearestNeighbor(object):
   """ a kNN classifier with L2 distance """
 
@@ -73,7 +72,7 @@ class KNearestNeighbor(object):
         # training point, and store the result in dists[i, j]. You should   #
         # not use a loop over dimension.                                    #
         #####################################################################
-        pass
+        dists[i][j] = ((X[i] - self.X_train[j])**2).sum().reshape(-1)
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -95,7 +94,7 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      pass
+      dists[i] = ((self.X_train - X[i])**2).sum(axis=1)
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -114,7 +113,7 @@ class KNearestNeighbor(object):
     #########################################################################
     # TODO:                                                                 #
     # Compute the l2 distance between all test points and all training      #
-    # points without using any explicit loops, and store the result in      #
+    # points without using any explicit loops, and store the result in      #dists[i][j] = 
     # dists.                                                                #
     #                                                                       #
     # You should implement this function using only basic array operations; #
@@ -123,7 +122,7 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    dists = -2 * X.dot(self.X_train.T) + (X**2).sum(axis = 1).reshape(-1, 1) + (self.X_train**2).sum(axis = 1).reshape(1, -1)  
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -155,15 +154,18 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      pass
+      closest_y = self.y_train[dists[i].argsort()[:k]]
       #########################################################################
-      # TODO:                                                                 #
+      # TODO:                                                              #
       # Now that you have found the labels of the k nearest neighbors, you    #
       # need to find the most common label in the list closest_y of labels.   #
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      pass
+      uniq, cnts = np.unique(closest_y, return_counts=True)
+      uniq_idx = max(range(len(cnts)), key=lambda x: (cnts[x], -uniq[x]))
+      y_pred[i] = uniq[uniq_idx]
+      
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################

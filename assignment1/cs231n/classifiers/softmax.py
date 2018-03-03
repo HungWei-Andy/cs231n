@@ -30,7 +30,43 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  D, C = W.shape
+  N, D = X.shape
+    
+  # score
+  scores = np.zeros((N, C))
+  for xi in range(N):
+    for ci in range(C):
+      for di in range(D):
+        scores[xi, ci] += X[xi, di] * W[di, ci]
+  
+  # probability
+  probs = np.zeros((N, C))
+  for xi in range(N):
+    max_s = scores[xi, 0]
+    for ci in range(1, C):
+      max_s = max(max_s, scores[xi, ci])
+    
+    exp_sum = 0
+    for ci in range(C):
+      probs[xi, ci] = np.exp(scores[xi, ci] - max_s)
+      exp_sum += probs[xi, ci]
+    for ci in range(C):
+      probs[xi, ci] /= exp_sum
+
+  # loss
+  for xi in range(N):
+    loss += -np.log(probs[xi, y[xi]]) / N
+    
+  # dW
+  for di in range(D):
+    for ci in range(C):
+      for xi in range(N):
+        dW[di, ci] += probs[xi, ci] * X[xi, di]
+        if ci == y[xi]:
+          dW[di, ci] -= X[xi, di]
+      dW[di, ci] = dW[di, ci] / N + reg * W[di, ci]
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -54,7 +90,18 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  N = X.shape[0]
+  C = W.shape[1]
+  
+  # loss
+  scores = X.dot(W)
+  exps = np.exp(scores - scores.max(axis=1).reshape(-1, 1))
+  probs = exps / exps.sum(axis = 1).reshape(-1, 1)
+  loss = -np.log(probs[range(N), y]).sum() / N
+  
+  # gradient
+  probs[range(N), y] -= 1
+  dW = X.T.dot(probs) / N + reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
